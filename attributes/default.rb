@@ -17,8 +17,7 @@
 # limitations under the License.
 #
 
-default['hubot']['git_source'] = 'https://github.com/github/hubot.git'
-default['hubot']['version'] = '2.12.0'
+default['hubot']['version'] = '2.11.0'
 default['hubot']['scripts_version'] = '2.5.16'
 default['hubot']['install_dir'] = '/opt/hubot'
 default['hubot']['user'] = 'hubot'
@@ -31,17 +30,3 @@ default['hubot']['config'] = {}
 default['hubot']['dependencies'] = {}
 default['hubot']['hubot_scripts'] = []
 default['hubot']['external_scripts'] = []
-
-# Choose daemonize program: 'runit' or 'supervisor'
-default['hubot']['daemon'] = 'runit'
-
-# runit stuff
-default['hubot']['runit']['default_logger'] = false # Use true to log to /var/log/hubot
-
-# supervisor stuff
-default['hubot']['supervisor']['stdout_logfile'] = '/var/log/hubot.log'
-default['hubot']['supervisor']['stdout_logfile_maxbytes'] = '10MB'
-default['hubot']['supervisor']['stdout_logfile_backups'] = 10
-default['hubot']['supervisor']['stderr_logfile'] = '/var/log/hubot_error.log'
-default['hubot']['supervisor']['stderr_logfile_maxbytes'] = '10MB'
-default['hubot']['supervisor']['stderr_logfile_backups'] = 10

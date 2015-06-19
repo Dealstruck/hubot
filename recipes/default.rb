@@ -18,14 +18,7 @@
 #
 
 include_recipe 'git'
-
-case node['platform_family']
-when 'debian'
-  node.set['nodejs']['install_method'] = 'package'
-else
-  node.set['nodejs']['install_method'] = 'source'
-end
-
+include_recipe 'runit'
 include_recipe 'nodejs'
 
 user node['hubot']['user'] do
@@ -44,17 +37,24 @@ directory node['hubot']['install_dir'] do
   mode '0755'
 end
 
-git ::File.join(Chef::Config[:file_cache_path], 'hubot') do
-  repository node['hubot']['git_source']
+# https://github.com/github/hubot/archive/v2.4.6.zip
+checkout_location = ::File.join(Chef::Config[:file_cache_path], 'hubot')
+git checkout_location do
+  repository 'https://github.com/github/hubot.git'
   revision "v#{node['hubot']['version']}"
-  notifies :install, 'nodejs_npm[hubot]', :immediately
+  action :checkout
+  notifies :run, 'execute[build and install hubot]', :immediately
 end
 
-nodejs_npm 'hubot' do
-  path ::File.join(Chef::Config[:file_cache_path], 'hubot')
-  json true
-  user 'root'
-  group 'root'
+execute 'build and install hubot' do
+  command <<-EOH
+npm install
+chown #{node['hubot']['user']}:#{node['hubot']['group']} -R #{node['hubot']['install_dir']}
+  EOH
+  cwd checkout_location
+  environment(
+    'PATH' => "#{checkout_location}/node_modules/.bin:#{ENV['PATH']}"
+  )
   action :nothing
 end
 
@@ -64,11 +64,8 @@ template "#{node['hubot']['install_dir']}/package.json" do
   group node['hubot']['group']
   mode '0644'
   variables node['hubot'].to_hash
-  notifies :install, 'nodejs_npm[install]', :immediately
+  notifies :run, 'execute[npm install]', :immediately
 end
-
-# Get the daemonizing server
-daemon = node['hubot']['daemon']
 
 template "#{node['hubot']['install_dir']}/hubot-scripts.json" do
   source 'hubot-scripts.json.erb'
@@ -76,7 +73,7 @@ template "#{node['hubot']['install_dir']}/hubot-scripts.json" do
   group node['hubot']['group']
   mode '0644'
   variables node['hubot'].to_hash
-  notifies :restart, "#{daemon}_service[hubot]", :delayed
+  notifies :restart, 'service[hubot]'
 end
 
 template "#{node['hubot']['install_dir']}/external-scripts.json" do
@@ -85,16 +82,22 @@ template "#{node['hubot']['install_dir']}/external-scripts.json" do
   group node['hubot']['group']
   mode '0644'
   variables node['hubot'].to_hash
-  notifies :restart, "#{daemon}_service[hubot]", :delayed
+  notifies :restart, 'service[hubot]'
 end
 
-nodejs_npm 'install' do
-  path node['hubot']['install_dir']
-  json true
+execute 'npm install' do
+  cwd node['hubot']['install_dir']
   user node['hubot']['user']
   group node['hubot']['group']
+  environment(
+    'USER' => node['hubot']['user'],
+    'HOME' => node['hubot']['install_dir']
+  )
   action :nothing
-  notifies :restart, "#{daemon}_service[hubot]", :delayed
+  notifies :restart, 'service[hubot]'
 end
 
-include_recipe "hubot::_#{daemon}"
+runit_service 'hubot' do
+  options node['hubot'].to_hash
+  env node['hubot']['config']
+end

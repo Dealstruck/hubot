@@ -1,8 +1,4 @@
-hubot cookbook
-================
-
-[![Join the chat at https://gitter.im/tas50/hubot](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tas50/hubot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/tas50/hubot.svg)](https://travis-ci.org/tas50/hubot)
+# hubot cookbook
 
 Deploys and manages an instance of [GitHub's Hubot](http://hubot.github.com/).
 
@@ -62,7 +58,6 @@ This cookbook depends on the following external cookbooks:
 * [nodejs](https://supermarket.chef.io/cookbooks/nodejs)
 * [git](https://supermarket.chef.io/cookbooks/git)
 * [runit](https://supermarket.chef.io/cookbooks/runit)
-* [supervisor](https://supermarket.chef.io/cookbooks/supervisor)
 
 # Recipes
 
